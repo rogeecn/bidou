@@ -33,7 +33,7 @@ func init() {
 	getCmd.Flags().StringVarP(&vParams.SavePath, "save_path", "S", "/opt/downloads/bilibili", "save to dir")
 }
 
-func runGet(cmd *cobra.Command, args []string) {
+func runGet(_ *cobra.Command, args []string) {
 	if vParams.BVID == "" && len(args) == 0 {
 		fmt.Println("Please video url or bvid")
 		return
@@ -57,12 +57,30 @@ func runGet(cmd *cobra.Command, args []string) {
 		"--save_path", vParams.SavePath,
 	}
 
-	log.Println("cmd: python", strings.Join(argsItems, " "))
-	execCmd := exec.CommandContext(context.Background(), "/usr/local/bin/bider", argsItems...)
-	output, err := execCmd.CombinedOutput()
+	log.Println("cmd: /usr/local/bin/bider", strings.Join(argsItems, " "))
+	cmd := exec.CommandContext(context.Background(), "/usr/local/bin/bider", argsItems...)
+
+	stdout, err := cmd.StdoutPipe()
+	cmd.Stderr = cmd.Stdout
+
 	if err != nil {
-		log.Println("ERR: ", err)
-		return
+		log.Fatal(err)
 	}
-	log.Printf("\n\nOUTPUT: \n\n %s\n", output)
+
+	if err = cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+	// 从管道中实时获取输出并打印到终端
+	for {
+		tmp := make([]byte, 1024)
+		_, err := stdout.Read(tmp)
+		fmt.Print(string(tmp))
+		if err != nil {
+			break
+		}
+	}
+
+	if err = cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
 }

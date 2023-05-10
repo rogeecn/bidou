@@ -8,7 +8,6 @@ import os
 import argparse
 
 
-
 # SAVE_PATH = "/opt/downloads/bilibili"
 # SESSDATA = "12c94c19%2C1699148430%2C6aa66%2A51"
 # BILI_JCT = "401141897"
@@ -17,6 +16,7 @@ import argparse
 
 # FFMPEG 路径，查看：http://ffmpeg.org/
 FFMPEG_PATH = "ffmpeg"
+
 
 async def download_url(url: str, out: str, info: str):
     # 下载函数
@@ -33,26 +33,28 @@ async def download_url(url: str, out: str, info: str):
                 # print(f'下载 {info} {process} / {length}')
                 f.write(chunk)
 
-async def main(args :argparse.Namespace):
+
+async def main(args: argparse.Namespace):
     # 实例化 Credential 类
-    credential = Credential(sessdata=args.sessdata, bili_jct=args.bili_jct, buvid3=args.buvid3)
+    credential = Credential(sessdata=args.sessdata,
+                            bili_jct=args.bili_jct, buvid3=args.buvid3)
     # 实例化 Video 类
     v = video.Video(bvid=args.bvid, credential=credential)
     v_info = await v.get_info()
 
-
     # 专辑标题
-    title = v_info["title"]
-
+    title = v_info["title"].replace(" ", "_").replace("　", "_")
+    total = len(v_info["pages"])
     # 遍历 v_info.pages
-    for page in v_info["pages"]:
-        part_title = page["part"]
+    for idx, page in enumerate(v_info["pages"]):
+        part_title = page["part"].replace(" ", "_").replace("　", "_")
         full_name_path = f'{args.save_path}/{title}/{part_title}'
-        print(f'正在下载：{title}/{part_title}')
 
         if os.path.exists(f'{full_name_path}.mp4'):
             print(f'已下载：{title}/{part_title}')
             continue
+
+        print(f'正在下载[{idx}/{total}]：{title}/{part_title}')
 
         # 创建文件夹 dir(full_path)
         dst_dir = os.path.dirname(full_name_path)
@@ -70,7 +72,8 @@ async def main(args :argparse.Namespace):
             # FLV 流下载
             await download_url(streams[0].url, f"{full_name_path}_temp.flv", "FLV 音视频流")
             # 转换文件格式
-            os.system(f'{FFMPEG_PATH} -i {full_name_path}_temp.flv {full_name_path}.mp4')
+            os.system(
+                f'{FFMPEG_PATH} -loglevel quiet -i {full_name_path}_temp.flv {full_name_path}.mp4')
             # 删除临时文件
             os.remove(f"{full_name_path}_temp.flv")
         else:
@@ -78,7 +81,7 @@ async def main(args :argparse.Namespace):
             await download_url(streams[0].url, f"{full_name_path}_video_temp.m4s", "视频流")
             await download_url(streams[1].url, f"{full_name_path}_audio_temp.m4s", "视频流")
             # 混流
-            os.system(f'{FFMPEG_PATH} -i {full_name_path}_video_temp.m4s -i {full_name_path}_audio_temp.m4s -vcodec copy -acodec copy {full_name_path}.mp4')
+            os.system(f'{FFMPEG_PATH} -loglevel quiet -i {full_name_path}_video_temp.m4s -i {full_name_path}_audio_temp.m4s -vcodec copy -acodec copy {full_name_path}.mp4')
             # 删除临时文件
             os.remove(f"{full_name_path}_video_temp.m4s")
             os.remove(f"{full_name_path}_audio_temp.m4s")
@@ -88,11 +91,11 @@ async def main(args :argparse.Namespace):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--bvid',required=True)
-    parser.add_argument('--buvid3',required=True)
-    parser.add_argument('--bili_jct',required=True)
-    parser.add_argument('--sessdata',required=True)
-    parser.add_argument('--save_path',default="/opt/downloads/bilibili")
+    parser.add_argument('--bvid', required=True)
+    parser.add_argument('--buvid3', required=True)
+    parser.add_argument('--bili_jct', required=True)
+    parser.add_argument('--sessdata', required=True)
+    parser.add_argument('--save_path', default="/opt/downloads/bilibili")
     args = parser.parse_args()
 
     # print(args.save_path)
