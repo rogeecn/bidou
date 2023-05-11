@@ -25,7 +25,7 @@ func NewRoute(svc http.Service, ctrl *controller.BidouController) http.Route {
 }
 
 func (r *Route) Register() {
-	r.engine.StaticFile("/", "./resources/statics/index.html") // gen.DataFunc(r.controller.Index))
+	// r.engine.StaticFile("/", "./resources/statics/index.html") // gen.DataFunc(r.controller.Index))
 	r.engine.GET("/login", gen.DataFunc(r.controller.Login))
 	r.engine.GET("/crawl", gen.Func(r.controller.Crawl))
 }

@@ -50,7 +50,6 @@ func (svc *DownloaderService) getVideo() (*dto.DownloadVideoItem, error) {
 	log.Info("wait for task")
 	items, err := svc.redis.BLPop(context.Background(), time.Minute, consts.TASK_KEY).Result()
 	if err != nil {
-		log.Errorf("redis blpop error: %v", err)
 		return nil, err
 	}
 

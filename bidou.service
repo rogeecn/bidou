@@ -1,0 +1,11 @@
+[Unit]
+Description=bilibili downloader service
+After=network.target
+  
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/bidou
+User=rogee
+  
+[Install]
+WantedBy=multi-user.target

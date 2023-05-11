@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os"
+	"log"
 
 	"github.com/rogeecn/bidou/database/migrations"
 	"github.com/rogeecn/bidou/database/seeders"
@@ -21,7 +21,7 @@ func main() {
 	providers = append(providers, bidou.Providers()...)
 
 	opts := []atom.Option{
-		atom.Name("http"),
+		atom.Name("bidou"),
 		atom.RunE(func(cmd *cobra.Command, args []string) error {
 			return services.ServeHttp()
 		}),
@@ -30,6 +30,6 @@ func main() {
 	}
 
 	if err := atom.Serve(providers, opts...); err != nil {
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
