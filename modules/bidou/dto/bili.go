@@ -1,6 +1,10 @@
 package dto
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/rogeecn/bidou/pkg/bili"
+)
 
 type DownloadVideoItem struct {
 	BVID    string `json:"bvid"`
@@ -18,7 +22,7 @@ func (v DownloadVideoItem) String() string {
 
 func (v DownloadVideoItem) Path() string {
 	if v.Album == "" {
-		return v.Title
+		return bili.CleanName(v.Title)
 	}
-	return v.Album + "/" + v.Title
+	return bili.CleanName(v.Album) + "/" + bili.CleanName(v.Title)
 }
