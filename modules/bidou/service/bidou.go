@@ -142,18 +142,19 @@ func (svc *BidouService) FetchSSOCookies(url string) error {
 	return eg.Wait()
 }
 
-func (svc *BidouService) PushPendingDownloadTasks(bvid string) error {
+func (svc *BidouService) PushPendingDownloadTasks(bvid string) ([]string, error) {
 	url := fmt.Sprintf("https://api.bilibili.com/x/web-interface/view?bvid=%s", bvid)
 	client := bili.New(svc.http)
 	if err := client.Get(url); err != nil {
-		return err
+		return nil, err
 	}
 
 	var vInfo bili.VideoInfoDetail
 	if err := client.Decode(&vInfo); err != nil {
-		return err
+		return nil, err
 	}
 
+	names := []string{}
 	isAlbum := len(vInfo.Pages) > 1
 	for _, v := range vInfo.Pages {
 		video := dto.DownloadVideoItem{
@@ -168,9 +169,10 @@ func (svc *BidouService) PushPendingDownloadTasks(bvid string) error {
 			video.Album = vInfo.Title
 		}
 
+		names = append(names, video.Title)
 		svc.redis.RPush(context.Background(), consts.TASK_KEY, video.String())
 		log.Info("push video to redis: ", video.String())
 	}
 
-	return nil
+	return names, nil
 }

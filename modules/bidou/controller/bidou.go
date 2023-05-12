@@ -27,14 +27,14 @@ func (c *BidouController) Login(ctx *gin.Context) (*bili.QRCodeInfo, error) {
 	return c.svc.GetQrCodeInfo(ctx)
 }
 
-func (c *BidouController) Crawl(ctx *gin.Context) error {
+func (c *BidouController) Crawl(ctx *gin.Context) ([]string, error) {
 	rawUrl := ctx.Query("url")
 	if rawUrl == "" {
-		return errors.New("Invalid Url")
+		return nil,errors.New("Invalid Url")
 	}
 	bvid, err := bili.GetBVIDFromURL(rawUrl)
 	if err != nil {
-		return err
+		return nil,err
 	}
 
 	// add bvid to crawl list
